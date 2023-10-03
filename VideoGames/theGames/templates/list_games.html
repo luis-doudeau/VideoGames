@@ -7,10 +7,9 @@
     <li>
         <h3>Jeu n°{{game.pk}}</h3>
         {{ game.nom }} : {{ game.description }}
+        <a href="{% url 'game' game.id %}">{{game.name}} </a>
     </li>
     {% endfor %}
 </ul>
 {% endblock %}
 
-
-    <!-- <li><a href="{% url 'polls:task' task.id %}">{{task.name}} </a> </li> -->
