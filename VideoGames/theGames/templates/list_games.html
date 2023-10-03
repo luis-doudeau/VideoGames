@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %} Liste des jeux{% endblock %}
+{% block content %}
+<h2>Les jeux</h2>
+<ul>
+    {% for game in games %}
+    <li>
+        <h3>Jeu n°{{game.pk}}</h3>
+        {{ game.nom }} : {{ game.description }}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}
+
+
+    <!-- <li><a href="{% url 'polls:task' task.id %}">{{task.name}} </a> </li> -->
