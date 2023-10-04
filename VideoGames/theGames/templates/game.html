@@ -1,8 +1,20 @@
 {% extends 'base.html' %}
-{% block title %}{{task.name}}{% endblock %}
+{% block title %}{{ game.name }}{% endblock %}
 {% block content %}
-<ul>
-    <li>{{game.description}}</li>
- </ul>
- <button><a href="{% url 'games'%}">Retour</a></button>
- {% endblock %}
+<div class="card" style="width: 18rem;">
+    <div class="card-body">
+        <h5 class="card-title">{{ game.name }}</h5>
+        <p class="card-text">{{ game.description }}</p>
+    </div>
+</div>
+<a href="{% url 'edit_game' game.id %}" class="btn btn-primary">
+    <i class="bi bi-pencil-fill"></i> Modifier
+</a>
+<a href="{% url 'game_delete' game.id %}" class="btn btn-danger">
+    <i class="bi bi-trash-fill"></i> Supprimer
+</a>
+<a href="{% url 'games' %}" class="btn btn-secondary">
+    <i class="bi bi-arrow-left"></i> Retour
+</a>
+
+{% endblock %}

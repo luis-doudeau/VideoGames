@@ -1,15 +1,27 @@
 {% extends 'base.html' %}
-{% block title %} Liste des jeux{% endblock %}
-{% block content %}
-<h2>Les jeux</h2>
-<ul>
-    {% for game in games %}
-    <li>
-        <h3>Jeu n°{{game.pk}}</h3>
-        {{ game.nom }} : {{ game.description }}
-        <a href="{% url 'game' game.id %}">{{game.name}} </a>
-    </li>
-    {% endfor %}
-</ul>
-{% endblock %}
 
+{% block title %} Liste des jeux{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4 text-center">Les jeux</h2>
+    <div class="row justify-content-center">
+        {% for game in games %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 mx-auto" style="width: 18rem;">
+                <div class="card-body">
+                    <h3 class="card-title">Jeu n°{{ game.pk }} : {{ game.nom }}</h3>
+                    <p class="card-text">{{ game.description }}</p>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'game' game.id %}" class="btn btn-primary">Détail</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="text-center mt-4">
+        <a href="{% url 'game_form' %}" class="btn btn-success">Ajouter un jeu</a>
+    </div>
+</div>
+{% endblock %}

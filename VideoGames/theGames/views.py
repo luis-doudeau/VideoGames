@@ -3,6 +3,10 @@ from django.http import HttpResponse
 from .models import Game
 from django.http import Http404
 from django.forms import ModelForm
+from django.views import View  # Importez la classe View
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
+from django.views.generic.edit import DeleteView, UpdateView
 
 
 def home(request):
@@ -45,18 +49,13 @@ def gameForm(request):
 
     return render(request,'game_form.html', context)
     
-class GameDelete(ModelForm):
-    class Meta:
-        model = Game
-        fields = ('name', 'description', 'studio')
+class GameDeleteView(DeleteView):
+    model = Game
+    template_name = 'delete_game.html'
+    success_url = reverse_lazy('games')
 
-    def clean(self):
-        pass
-
-def my_task_delete(request):
-    delete_game = get_object_or_404(Game, id=id)
-    if request.method == "POST":
-        delete_game.delete()
-        # Rediriger vers la page de liste des jeux.
-        return redirect('list_games')
-    return render(request, 'delete_game.html', {'object': delete_game})
+class GameEditView(UpdateView):
+    model = Game
+    fields = ['name', 'description', 'studio']
+    template_name = 'edit_game.html'
+    success_url = reverse_lazy('games')
