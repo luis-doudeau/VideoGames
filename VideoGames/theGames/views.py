@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Game
+from django.http import Http404
+from django.forms import ModelForm
 
 
 def home(request):
@@ -12,42 +14,49 @@ def game_listing(request):
     return render(request, template_name='list_games.html', context={'games':games})
 
 def game_detail(request, id):
-    try : 
+    try :
      game=Game.objects.get(pk=id)
-    except Game.DoesNotExist : 
+    except Game.DoesNotExist :
           raise Http404("Game does not exist")
     return render(request, template_name='game.html', context={'game':game})
 
 
+class GameForm(ModelForm):
+    class Meta:
+        model = Game
+        fields = ('name', 'description', 'studio')
+
+    def clean(self):
+        pass
+
 def gameForm(request):
-    gameForm = TaskForm()
-    # on teste si on est bien en validation de formulaire (POST)
+    gameForm = GameForm()
+    # on teste si on est bien en validation du jeu (POST)
     if request.method == "POST":
         # Si oui on récupère les données postées
-        form = TaskForm(request.POST)
-        # on vérifie la validité du formulaire
+        form = GameForm(request.POST)
+        # on vérifie la validité du jeu
         if form.is_valid():
             new_game = form.save()
             context = {'game': new_game}
             return render(request,'game.html', context)
-    # Si méthode GET, on présente le formulaire
-    context = {'game': gameForm}
+    # Si méthode GET, on présente le jeu
+    context = {'form': gameForm}
 
     return render(request,'game_form.html', context)
     
+class GameDelete(ModelForm):
+    class Meta:
+        model = Game
+        fields = ('name', 'description', 'studio')
 
-# def my_task_delete(request) :
-#     taskform = TaskForm()
-#     # on teste si on est bien en validation de formulaire (POST)
-#     if request.method == "DELETE":
-#         # Si oui on récupère les données postées
-#         form = TaskForm(request.POST)
-#         # on vérifie la validité du formulaire
-#         if form.is_valid():
-#             new_task = form.save()
-#             context = {'task': new_task}
-#             return render(request,'task.html', context)
-#     # Si méthode GET, on présente le formulaire
-#     context = {'form': taskform}
+    def clean(self):
+        pass
 
-#     return render(request,'mytaskdelete.html', context)
+def my_task_delete(request):
+    delete_game = get_object_or_404(Game, id=id)
+    if request.method == "POST":
+        delete_game.delete()
+        # Rediriger vers la page de liste des jeux.
+        return redirect('list_games')
+    return render(request, 'delete_game.html', {'object': delete_game})
