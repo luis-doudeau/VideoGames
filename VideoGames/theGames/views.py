@@ -42,8 +42,7 @@ def gameForm(request):
         # on vérifie la validité du jeu
         if form.is_valid():
             new_game = form.save()
-            context = {'game': new_game}
-            return render(request,'game.html', context)
+            return redirect('game', id=new_game.id)
     # Si méthode GET, on présente le jeu
     context = {'form': gameForm}
 
