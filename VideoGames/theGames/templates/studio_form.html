@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% load bootstrap5 %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">Créer le studio</h2>
+
+    <form method="post" class="mb-3">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <button type="submit" class="btn btn-success">Créer</button>
+    </form>
+    
+
+    <a href="{% url 'studios' %}" class="btn btn-secondary">Retour à la liste des studios</a>
+</div>
+{% endblock %}

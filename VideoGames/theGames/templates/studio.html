@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}{{ studio.name }}{% endblock %}
+{% block content %}
+<div class="card" style="width: 18rem;">
+    <div class="card-body">
+        <h5 class="card-title">{{ studio.name }}</h5>
+        <p class="card-text">{{ studio.description }}</p>
+    </div>
+</div>
+<a href="{% url 'edit_studio' studio.id %}" class="btn btn-primary">
+    <i class="bi bi-pencil-fill"></i> Modifier
+</a>
+<a href="{% url 'studio_delete' studio.id %}" class="btn btn-danger">
+    <i class="bi bi-trash-fill"></i> Supprimer
+</a>
+<a href="{% url 'studios' %}" class="btn btn-secondary">
+    <i class="bi bi-arrow-left"></i> Retour
+</a>
+
+{% endblock %}

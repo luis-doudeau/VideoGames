@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %} Liste des studios{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4 text-center">Les studios</h2>
+    <div class="row justify-content-center">
+        {% for studio in studios %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 mx-auto" style="width: 18rem;">
+                <div class="card-body">
+                    <h3 class="card-title">{{ studio.pk }} - {{ studio.name }}</h3>
+                    <p class="card-text">{{ studio.description }}</p>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'studio' studio.id %}" class="btn btn-primary">Détail</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="text-center mt-4">
+        <a href="{% url 'studio_form' %}" class="btn btn-success">Ajouter un studio</a>
+    </div>
+</div>
+{% endblock %}

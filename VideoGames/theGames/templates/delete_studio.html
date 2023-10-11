@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ studio.name }}{% endblock %}
+{% block content %}
+    <h1 class="my-4">Are you sure you want to delete "{{ studio.name }}"?</h1>
+    <form action="{% url 'studio_delete' studio.id %}" method="post" class="mb-3">
+        {% csrf_token %}
+        <input type="submit" value="Yes, Delete" class="btn btn-danger">
+    </form>
+    
+{% endblock %}
