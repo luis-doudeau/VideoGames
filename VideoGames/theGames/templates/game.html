@@ -1,20 +1,24 @@
 {% extends 'base.html' %}
 {% block title %}{{ game.name }}{% endblock %}
 {% block content %}
-<div class="card" style="width: 18rem;">
-    <div class="card-body">
-        <h5 class="card-title">{{ game.name }}</h5>
-        <p class="card-text">{{ game.description }}</p>
+
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card text-center" style="width: 28rem;">
+        <div class="card-body">
+            <h3 class="card-title">{{ game.name }}</h3>
+            <p class="card-text" style="font-size: 1.25rem;">{{ game.description }}</p>
+            
+            <a href="{% url 'edit_game' game.id %}" class="btn btn-primary btn-lg m-2">
+                <i class="bi bi-pencil-fill"></i> Modifier
+            </a>
+            <a href="{% url 'game_delete' game.id %}" class="btn btn-danger btn-lg m-2">
+                <i class="bi bi-trash-fill"></i> Supprimer
+            </a>
+            <a href="{% url 'games' %}" class="btn btn-secondary btn-lg m-2">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
     </div>
 </div>
-<a href="{% url 'edit_game' game.id %}" class="btn btn-primary">
-    <i class="bi bi-pencil-fill"></i> Modifier
-</a>
-<a href="{% url 'game_delete' game.id %}" class="btn btn-danger">
-    <i class="bi bi-trash-fill"></i> Supprimer
-</a>
-<a href="{% url 'games' %}" class="btn btn-secondary">
-    <i class="bi bi-arrow-left"></i> Retour
-</a>
 
 {% endblock %}

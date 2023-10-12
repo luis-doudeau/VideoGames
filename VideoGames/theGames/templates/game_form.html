@@ -1,18 +1,84 @@
 {% extends "base.html" %}
 
-{% load bootstrap5 %}
+{% load widget_tweaks %}
+
+{% block title %} Ajouter Jeu{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2 class="my-4">Créer le jeu</h2>
+<div class="container mt-5">
+    <h2 class="mb-5">Créer le jeu</h2>
 
-    <form method="post" class="mb-3">
-        {% csrf_token %}
-        {% bootstrap_form form %}
-        <button type="submit" class="btn btn-success">Créer</button>
-    </form>
-    
+    <!-- Créer un jeu -->
+    <div class="card mb-5 shadow">
+        <div class="card-header bg-success text-white">
+            <i class="bi bi-joystick me-2"></i> Créer un jeu
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {% for field in game_form %}
+                <div class="mb-4">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {% if field.field.widget.input_type == "checkbox" %}
+                        {{ field }}
+                    {% else %}
+                        {% render_field field|add_class:"form-control" %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <button type="button" id="showPlatformButton" class="btn btn-primary">Ajouter une autre Plateforme</button>
+                <div class="d-flex justify-content-center">
+                    <button type="submit" name="submit_game" class="btn btn-success">Créer le jeu</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <a href="{% url 'games' %}" class="btn btn-secondary">Retour à la liste des jeux</a>
+    <!-- Ajouter une plateforme -->
+    <div class="card mb-5 shadow" id="addPlatformSection" style="{% if platform_has_errors %}display: block;{% else %}display: none;{% endif %}">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-laptop me-2"></i> Ajouter une plateforme
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {% for field in platform_form %}
+                <div class="mb-4">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {% if field.field.widget.input_type == "checkbox" %}
+                        {{ field }}
+                    {% else %}
+                        {% render_field field|add_class:"form-control" %}
+                    {% endif %}
+                    
+                    {% if field.name == "name" %}
+                        {% for error in field.errors %}
+                            <div class="alert alert-danger mt-2">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit" name="submit_platform" class="btn btn-success">Ajouter Plateforme</button>
+                <button type="button" id="hidePlatformButton" class="btn btn-warning">Masquer</button>
+            </form>
+        </div>
+    </div>
+
+    <a href="{% url 'games' %}" class="btn btn-secondary mt-3">
+        <i class="bi bi-arrow-left me-2"></i>Retour à la liste des jeux
+    </a>
 </div>
+
+<script>
+    document.getElementById("showPlatformButton").addEventListener("click", function() {
+        var platformSection = document.getElementById("addPlatformSection");
+        platformSection.style.display = "block"; // Show the platform section
+        platformSection.scrollIntoView({behavior: 'smooth'}); // Scroll to the platform section
+    });
+
+    document.getElementById('hidePlatformButton').addEventListener("click", function() {
+        document.getElementById("addPlatformSection").style.display = "none";
+    });
+</script>
+
 {% endblock %}

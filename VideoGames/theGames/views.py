@@ -1,8 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import Game, Studio
+from .models import Game, Studio, Platform
 from django.http import Http404
 from django.forms import ModelForm
+from django import forms
 from django.views import View  # Importez la classe View
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
@@ -24,29 +25,52 @@ def game_detail(request, id):
           raise Http404("Game does not exist")
     return render(request, template_name='game.html', context={'game':game})
 
+class PlatformForm(forms.ModelForm):
+    
+    class Meta:
+        model = Platform
+        fields = ['name', 'description', 'manufacturer']
+
 
 class GameForm(ModelForm):
+    studio = forms.ModelChoiceField(queryset=Studio.objects.all())
+    platforms = forms.ModelMultipleChoiceField(queryset=Platform.objects.all(), widget=forms.CheckboxSelectMultiple) 
+
     class Meta:
         model = Game
-        fields = ('name', 'description', 'studio')
+        fields = ('name', 'description', 'studio', 'platforms')
 
     def clean(self):
         pass
 
 def gameForm(request):
-    gameForm = GameForm()
-    # on teste si on est bien en validation du jeu (POST)
-    if request.method == "POST":
-        # Si oui on récupère les données postées
-        form = GameForm(request.POST)
-        # on vérifie la validité du jeu
-        if form.is_valid():
-            new_game = form.save()
-            return redirect('game', id=new_game.id)
-    # Si méthode GET, on présente le jeu
-    context = {'form': gameForm}
+    game_form = GameForm(request.POST or None)
+    platform_form = PlatformForm(request.POST or None)
 
-    return render(request,'game_form.html', context)
+    platform_has_errors = False
+
+    if 'submit_game' in request.POST and game_form.is_valid():
+        game_form.save()
+        return redirect('games')
+
+    if 'submit_platform' in request.POST:
+        if platform_form.is_valid():
+            platform_form.save()
+            # Rafraîchir les formulaires pour refléter les changements
+            game_form = GameForm()
+            platform_form = PlatformForm()
+        else:
+            platform_has_errors = True
+
+    context = {
+        'game_form': game_form,
+        'platform_form': platform_form,
+        'platform_has_errors': platform_has_errors
+    }
+    return render(request, 'game_form.html', context)
+
+
+
     
 class GameDeleteView(DeleteView):
     model = Game
@@ -104,4 +128,3 @@ class StudioEditView(UpdateView):
     fields = ['name', 'description', 'country']
     template_name = 'edit_studio.html'
     success_url = reverse_lazy('studios')
-

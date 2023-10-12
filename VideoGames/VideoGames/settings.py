@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'theGames.apps.ThegamesConfig',
-    'bootstrap5'
+    'bootstrap5',
+    'widget_tweaks',
 
 ]
 
