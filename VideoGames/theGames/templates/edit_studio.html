@@ -3,16 +3,16 @@
 {% load bootstrap5 %}
 
 
-{% block title %} Créer Studio {% endblock %}
+{% block title %} Modifier Studio {% endblock %}
 
 {% block content %}
 <div class="container">
-    <h2 class="my-4">Créer le studio</h2>
+    <h2 class="my-4">Modifier le studio</h2>
 
     <form method="post" class="mb-3">
         {% csrf_token %}
         {% bootstrap_form form %}
-        <button type="submit" class="btn btn-success">Créer</button>
+        <button type="submit" class="btn btn-success">Modifier</button>
     </form>
 
 

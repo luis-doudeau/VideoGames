@@ -14,12 +14,29 @@
                     <p class="card-text">{{ game.description }}</p>
                 </div>
                 <div class="card-footer">
-                    <a href="{% url 'game' game.id %}" class="btn btn-primary">Détail</a>
+                    <a href="{% url 'game_detail' game.pk %}">Voir le jeu</a>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
+
+    <!-- Pagination links -->
+    <div class='pagination justify-content-center'>
+        {% if page_obj.has_previous %}
+        <a href='{% url "games" %}?page={{ page_obj.previous_page_number }}'>Previous </a>
+        {% endif %}
+
+        <span class='mx-4'>
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+        <a href='{% url "games" %}?page={{ page_obj.next_page_number }}'> Next</a>
+        {% endif %}
+    </div>
+    <!-- Fin pagination links -->
+
     <div class="text-center mt-4">
         <a href="{% url 'game_form' %}" class="btn btn-success">Ajouter un jeu</a>
     </div>

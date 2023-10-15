@@ -1,17 +1,25 @@
 from django.urls import path
 from . import views
-from django.views import View
 
 urlpatterns = [
     path('home/', views.home, name='home'),
-    path('games/', views.game_listing, name='games'),
-    path("games/form/", views.gameForm, name="game_form"),
-    path('games/<id>/', views.game_detail, name='game'), # à mettre à la fin
-    path('games/<int:pk>/delete/', views.GameDeleteView.as_view(), name='game_delete'),
-    path('edit-game/<int:pk>/', views.GameEditView.as_view(), name='edit_game'),
-    path('studio/', views.studio_listing, name='studios'),
-    path('studio/form/', views.studioForm, name='studio_form'),
-    path('edit-studio/<int:pk>/', views.StudioEditView.as_view(), name='edit_studio'),
-    path('studio/<id>/', views.studio_detail, name='studio'),
-    path('studio/<int:pk>/delete/', views.StudioDeleteView.as_view(), name='studio_delete'),
+    path('games/', views.GameListView.as_view(), name='games'),
+    path('games/form/', views.GameCreateView.as_view(), name='game_form'),
+    path('games/detail/<int:pk>/',
+         views.GameDetailView.as_view(), name='game_detail'),
+
+
+    path('games/<int:pk>/delete/',
+         views.GameDeleteView.as_view(), name='game_delete'),
+    path('games/<int:pk>/edit/', views.GameEditView.as_view(), name='edit_game'),
+
+    path('studio/', views.StudioListView.as_view(), name='studios'),
+    path('studio/form/', views.StudioCreateView.as_view(), name='studio_form'),
+    path('studio/<int:pk>/', views.StudioDetailView.as_view(),
+         name='studio_detail'),  # Utilisation de pk au lieu de id
+    path('studio/<int:pk>/edit/', views.StudioEditView.as_view(), name='edit_studio'),
+    path('studio/<int:pk>/delete/',
+         views.StudioDeleteView.as_view(), name='studio_delete'),
+    path('create_platform/', views.PlatformCreateView.as_view(),
+         name='create_platform'),
 ]
