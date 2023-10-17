@@ -2,20 +2,38 @@
 
 {% load bootstrap5 %}
 
-
 {% block title %} Créer Studio {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2 class="my-4">Créer le studio</h2>
+<div class="container mt-5">
+    <h2 class="mb-4">Créer le studio</h2>
 
-    <form method="post" class="mb-3">
-        {% csrf_token %}
-        {% bootstrap_form form %}
-        <button type="submit" class="btn btn-success">Créer</button>
-    </form>
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
 
+                {% if confirmation_needed %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error_message }}
+                </div>
+                <div class="d-flex justify-content-center mb-4">
+                    <button type="submit" class="btn btn-primary me-5" name="confirm">Valider</button>
+                    <button type="submit" class="btn btn-secondary" name="cancel">Annuler</button>
+                </div>
 
-    <a href="{% url 'studios' %}" class="btn btn-secondary">Retour à la liste des studios</a>
+                {% endif %}
+
+                {% bootstrap_form form %}
+
+                <div class="d-flex justify-content-center">
+                    <button type="submit" class="btn btn-success ml-5 d-flex justify-content-center">Créer le
+                        studio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <a href="{% url 'studios' %}" class="btn btn-dark mt-4"> <i class="bi bi-arrow-left me-2"></i>Retour à
+        la liste des studios</a>
 </div>
 {% endblock %}

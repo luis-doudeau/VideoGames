@@ -11,6 +11,7 @@ from django.views.generic.edit import DeleteView, UpdateView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView
+from fuzzywuzzy import process
 
 
 def home(request):
@@ -21,7 +22,7 @@ class GameListView(ListView):
     model = Game
     template_name = 'list_games.html'
     context_object_name = 'games'
-    paginate_by = 5
+    paginate_by = 6
 
 
 class GameDetailView(DetailView):
@@ -65,37 +66,75 @@ class GameCreateView(CreateView):
     success_url = reverse_lazy('games')
 
     def form_valid(self, form):
-        # Vérification de l'existence d'un jeu avec le même nom
-        if Game.objects.filter(name=form.cleaned_data['name']).exists():
+        # Si l'utilisateur a confirmé la création, effacez la nécessité de confirmation et continuez
+        if 'confirm' in self.request.POST:
+            # supprime 'confirmation_needed' s'il existe
+            self.request.session.pop('confirmation_needed', None)
+            # supprime 'error_message' s'il existe
+            self.request.session.pop('error_message', None)
+            return super().form_valid(form)
+
+        # Si l'utilisateur a annulé, effacez la nécessité de confirmation et redirigez
+        if 'cancel' in self.request.POST:
+            # Nous préparons le même formulaire mais sans le besoin de confirmation
+            context = self.get_context_data(form=form)
+            # Assurez-vous qu'il n'y a pas de demande de confirmation
+            context.pop('confirmation_needed', None)
+            # Assurez-vous qu'il n'y a pas de message d'erreur
+            context.pop('error_message', None)
+            return self.render_to_response(context)
+
+        game_name = form.cleaned_data['name']
+        if Game.objects.filter(name=game_name).exists():
             form.add_error('name', 'Un jeu avec ce nom existe déjà.')
             return self.form_invalid(form)
 
-        # Tentative de création d'une nouvelle plateforme si des détails sont fournis
-        new_platform = None
-        if all(item in form.cleaned_data for item in ['nomPlatform', 'descriptionPlatform', 'manufacturerPlatform']):
-            platform_name = form.cleaned_data['nomPlatform']
+        all_games = Game.objects.all()
+        game_names = [game.name.lower() for game in all_games]
+        # Récupère les 3 meilleurs résultats
+        matches = process.extract(game_name, game_names, limit=3)
 
-            # Vérification de l'existence d'une plateforme avec le même nom
-            if not Platform.objects.filter(name=platform_name).exists():
-                new_platform = Platform.objects.create(
-                    name=platform_name,
-                    description=form.cleaned_data['descriptionPlatform'],
-                    manufacturer=form.cleaned_data['manufacturerPlatform']
-                )
-            else:
+        for match, percent_similar in matches:
+            if percent_similar > 85:
+                # Mettre l'état de confirmation et le message d'erreur dans le contexte plutôt que dans la session
+                context = self.get_context_data(form=form)
+                context['confirmation_needed'] = True
+                context['error_message'] = f"Un jeu avec un nom similaire '{match}' existe déjà avec {percent_similar}% de similarité. Veuillez confirmer que ce n'est pas une erreur."
+                return self.render_to_response(context)
+
+        existing_platforms_selected = form.cleaned_data.get(
+            'platforms') and any(form.cleaned_data.get('platforms'))
+
+        new_platform_name = form.cleaned_data.get('nomPlatform', '').strip()
+        new_platform = None
+
+        # Si aucune plateforme existante n'est sélectionnée, et que le nouveau nom de la plateforme est vide,
+        # nous devons renvoyer une erreur.
+        if not existing_platforms_selected and not new_platform_name:
+            form.add_error(
+                'nomPlatform', 'Le nom de la plateforme ne peut pas être vide')
+            return self.form_invalid(form)
+
+        # Si une nouvelle plateforme est spécifiée, vérifiez qu'elle n'existe pas déjà et créez-la si nécessaire
+        if new_platform_name:  # cela signifie qu'il n'est pas vide
+            if Platform.objects.filter(name=new_platform_name).exists():
                 form.add_error(
                     'nomPlatform', 'Une plateforme avec ce nom existe déjà.')
                 return self.form_invalid(form)
 
-        # Création du jeu
+            new_platform = Platform.objects.create(
+                name=new_platform_name,
+                description=form.cleaned_data['descriptionPlatform'],
+                manufacturer=form.cleaned_data['manufacturerPlatform']
+            )
+
         game = form.save(commit=False)
 
-        # Si une nouvelle plateforme a été créée, ajoutez-la aux plateformes associées au jeu
         if new_platform:
-            game.save()  # Vous devez d'abord enregistrer le jeu avant de pouvoir modifier les relations ManyToMany
+            game.save()  # Enregistrement du jeu avant de pouvoir modifier les relations ManyToMany
             game.platforms.add(new_platform)
 
-        game.save()  # Sauvegarde des modifications finales
+        game.save()
 
         return super().form_valid(form)
 
@@ -114,9 +153,92 @@ class GameDeleteView(DeleteView):
 
 class GameEditView(UpdateView):
     model = Game
-    fields = ['name', 'description', 'studio']
+    form_class = GameForm
     template_name = 'edit_game.html'
     success_url = reverse_lazy('games')
+
+    def form_valid(self, form):
+        # Si l'utilisateur a confirmé la création, effacez la nécessité de confirmation et continuez
+        if 'confirm' in self.request.POST:
+            # supprime 'confirmation_needed' s'il existe
+            self.request.session.pop('confirmation_needed', None)
+            # supprime 'error_message' s'il existe
+            self.request.session.pop('error_message', None)
+            return super().form_valid(form)
+
+        # Si l'utilisateur a annulé, effacez la nécessité de confirmation et redirigez
+        if 'cancel' in self.request.POST:
+            # Nous préparons le même formulaire mais sans le besoin de confirmation
+            context = self.get_context_data(form=form)
+            # Assurez-vous qu'il n'y a pas de demande de confirmation
+            context.pop('confirmation_needed', None)
+            # Assurez-vous qu'il n'y a pas de message d'erreur
+            context.pop('error_message', None)
+            return self.render_to_response(context)
+
+        game_name = form.cleaned_data['name']
+        if Game.objects.filter(name=game_name).exists():
+            form.add_error('name', 'Un jeu avec ce nom existe déjà.')
+            return self.form_invalid(form)
+
+        all_games = Game.objects.all()
+        print(Game.objects.get(pk=self.object.pk).name)
+        game_names = [
+            game.name for game in all_games if game.name.lower() != Game.objects.get(pk=self.object.pk).name.lower()]
+        # Récupère les 3 meilleurs résultats
+        matches = process.extract(game_name, game_names, limit=3)
+
+        for match, percent_similar in matches:
+            print(percent_similar)
+            if percent_similar > 85:
+                # Mettre l'état de confirmation et le message d'erreur dans le contexte plutôt que dans la session
+                context = self.get_context_data(form=form)
+                context['confirmation_needed'] = True
+                form.add_error('name', '')
+                context['error_message'] = f"Un jeu avec un nom similaire '{match}' existe déjà avec {percent_similar}% de similarité. Veuillez confirmer que ce n'est pas une erreur."
+                return self.render_to_response(context)
+
+        existing_platforms_selected = form.cleaned_data.get(
+            'platforms') and any(form.cleaned_data.get('platforms'))
+
+        new_platform_name = form.cleaned_data.get('nomPlatform', '').strip()
+        new_platform = None
+
+        # Si aucune plateforme existante n'est sélectionnée, et que le nouveau nom de la plateforme est vide,
+        # nous devons renvoyer une erreur.
+        if not existing_platforms_selected and not new_platform_name:
+            form.add_error(
+                'nomPlatform', 'Le nom de la plateforme ne peut pas être vide')
+            return self.form_invalid(form)
+
+        # Si une nouvelle plateforme est spécifiée, vérifiez qu'elle n'existe pas déjà et créez-la si nécessaire
+        if new_platform_name:  # cela signifie qu'il n'est pas vide
+            if Platform.objects.filter(name=new_platform_name).exists():
+                form.add_error(
+                    'nomPlatform', 'Une plateforme avec ce nom existe déjà.')
+                return self.form_invalid(form)
+
+            new_platform = Platform.objects.create(
+                name=new_platform_name,
+                description=form.cleaned_data['descriptionPlatform'],
+                manufacturer=form.cleaned_data['manufacturerPlatform']
+            )
+
+        game = form.save(commit=False)
+
+        if new_platform:
+            game.save()  # Enregistrement du jeu avant de pouvoir modifier les relations ManyToMany
+            game.platforms.add(new_platform)
+
+        game.save()
+
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['game_form'] = context.get('form')
+        context['platform_form'] = context.get('form')
+        return context
 
 
 class StudioForm(ModelForm):
@@ -134,11 +256,59 @@ class StudioCreateView(CreateView):
     template_name = 'studio_form.html'
     success_url = reverse_lazy('studios')
 
+    def form_valid(self, form):
+        if Studio.objects.filter(name=form.cleaned_data['name']).exists():
+            form.add_error('name', 'Un studio avec ce nom existe déjà.')
+            return self.form_invalid(form)
+
+        if 'confirm' in self.request.POST:
+            # supprime 'confirmation_needed' s'il existe
+            self.request.session.pop('confirmation_needed', None)
+            # supprime 'error_message' s'il existe
+            self.request.session.pop('error_message', None)
+            return super().form_valid(form)
+
+        # Si l'utilisateur a annulé, effacez la nécessité de confirmation et redirigez
+        if 'cancel' in self.request.POST:
+            # Nous préparons le même formulaire mais sans le besoin de confirmation
+            context = self.get_context_data(form=form)
+            # Assurez-vous qu'il n'y a pas de demande de confirmation
+            context.pop('confirmation_needed', None)
+            # Assurez-vous qu'il n'y a pas de message d'erreur
+            context.pop('error_message', None)
+            return self.render_to_response(context)
+
+        studio_name = form.cleaned_data['name']
+        if Studio.objects.filter(name=studio_name).exists():
+            form.add_error('name', 'Un studio avec ce nom existe déjà.')
+            return self.form_invalid(form)
+
+        all_studios = Studio.objects.all()
+        studio_names = [studio.name for studio in all_studios]
+        # Récupère les 3 meilleurs résultats
+        matches = process.extract(studio_name, studio_names, limit=3)
+
+        for match, percent_similar in matches:
+            if percent_similar > 85:
+                # Mettre l'état de confirmation et le message d'erreur dans le contexte plutôt que dans la session
+                context = self.get_context_data(form=form)
+                context['confirmation_needed'] = True
+                form.add_error('name', '')
+                context['error_message'] = f"Un studio avec un nom similaire '{match}' existe déjà avec {percent_similar}% de similarité. Veuillez confirmer que ce n'est pas une erreur."
+                return self.render_to_response(context)
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['studio_form'] = context.get('form')
+        return context
+
 
 class StudioListView(ListView):
     model = Studio
     template_name = 'list_studios.html'
     context_object_name = 'studios'
+    paginate_by = 6
 
 
 class StudioDetailView(DetailView):
@@ -155,16 +325,64 @@ class StudioDeleteView(DeleteView):
 
 class StudioEditView(UpdateView):
     model = Studio
-    fields = ['name', 'description', 'country']
+    form_class = StudioForm
     template_name = 'edit_studio.html'
     success_url = reverse_lazy('studios')
+
+    def form_valid(self, form):
+        if Studio.objects.filter(name=form.cleaned_data['name']).exists():
+            form.add_error('name', 'Un studio avec ce nom existe déjà.')
+            return self.form_invalid(form)
+
+        if 'confirm' in self.request.POST:
+            # supprime 'confirmation_needed' s'il existe
+            self.request.session.pop('confirmation_needed', None)
+            # supprime 'error_message' s'il existe
+            self.request.session.pop('error_message', None)
+            return super().form_valid(form)
+
+        # Si l'utilisateur a annulé, effacez la nécessité de confirmation et redirigez
+        if 'cancel' in self.request.POST:
+            # Nous préparons le même formulaire mais sans le besoin de confirmation
+            context = self.get_context_data(form=form)
+            # Assurez-vous qu'il n'y a pas de demande de confirmation
+            context.pop('confirmation_needed', None)
+            # Assurez-vous qu'il n'y a pas de message d'erreur
+            context.pop('error_message', None)
+            return self.render_to_response(context)
+
+        studio_name = form.cleaned_data['name']
+        if Studio.objects.filter(name=studio_name).exists():
+            form.add_error('name', 'Un studio avec ce nom existe déjà.')
+            return self.form_invalid(form)
+
+        all_studios = Studio.objects.all()
+        studio_names = [studio.name for studio in all_studios if studio.name.lower() !=
+                        Studio.objects.get(pk=self.object.pk).name.lower()]
+        # Récupère les 3 meilleurs résultats
+        matches = process.extract(studio_name, studio_names, limit=3)
+
+        for match, percent_similar in matches:
+            if percent_similar > 85:
+                # Mettre l'état de confirmation et le message d'erreur dans le contexte plutôt que dans la session
+                context = self.get_context_data(form=form)
+                context['confirmation_needed'] = True
+                form.add_error('name', '')
+                context['error_message'] = f"Un studio avec un nom similaire '{match}' existe déjà avec {percent_similar}% de similarité. Veuillez confirmer que ce n'est pas une erreur."
+                return self.render_to_response(context)
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['studio_form'] = context.get('form')
+        return context
 
 
 class PlatformCreateView(CreateView):
     model = Platform
     fields = ['name', 'description', 'manufacturer']
     template_name = 'platform_form.html'
-    success_url = reverse_lazy('create_game')
+    success_url = reverse_lazy('games')
 
     def form_valid(self, form):
         if Platform.objects.filter(name=form.cleaned_data['name']).exists():

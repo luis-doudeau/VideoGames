@@ -1,20 +1,105 @@
 {% extends "base.html" %}
 
-{% load bootstrap5 %}
-
-{% block title %} Edit {{game.name}}{% endblock %}
-
+{% block title %} Modifier Jeu{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2 class="my-4">Éditer le jeu</h2>
+<div class="container mt-5">
+    <h2 class="mb-5">Modifier le jeu</h2>
 
-    <form method="post" class="mb-3">
-        {% csrf_token %}
-        {% bootstrap_form form %}
-        <button type="submit" class="btn btn-primary">Mettre à jour</button>
-    </form>
+    <!-- Créer un jeu -->
+    <div class="card mb-5 shadow">
+        <div class="card-header bg-success text-white">
+            <i class="bi bi-joystick me-2"></i> Créer un jeu
+        </div>
+        <div class="card-body">
+            {% if game_form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ game_form.non_field_errors }}
+            </div>
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
 
-    <a href="{% url 'games' %}" class="btn btn-secondary">Retour à la liste des jeux</a>
+                {% if confirmation_needed %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error_message }}
+                </div>
+                <div class="d-flex justify-content-center mb-4">
+                    <button type="submit" class="btn btn-primary me-5" name="confirm">Valider</button>
+                    <button type="submit" class="btn btn-secondary" name="cancel">Annuler</button>
+                </div>
+
+                {% endif %}
+
+
+                <!-- Game name -->
+                <div class="mb-3 mt-5">
+                    <label for="{{ game_form.name.id_for_label }}" class="form-label">Nom du jeu</label>
+                    {{ game_form.name.errors }}
+                    {{ game_form.name }}
+                </div>
+
+                <!-- Game description -->
+                <div class="mb-3">
+                    <label for="{{ game_form.description.id_for_label }}" class="form-label">Description du jeu</label>
+                    {{ game_form.description }}
+                </div>
+
+                <!-- Studio -->
+                <div class="mb-3">
+                    <label for="{{ game_form.studio.id_for_label }}" class="form-label">Studio</label>
+                    {{ game_form.studio }}
+                </div>
+
+                <!-- Platforms (existing) -->
+                <div class="mb-3">
+                    <div class="row">
+                        <label class="form-label">Plateformes existantes</label>
+                        {% for platform in game_form.platforms %}
+                        <div class="col-4 mt-1">
+                            {{platform }}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+                <!-- New platform details -->
+                <h4 class="mb-3 mt-4">Ajouter une nouvelle plateforme</h4>
+
+                <!-- Platform name -->
+                <div class="mb-3">
+                    <label for="{{ game_form.nomPlatform.id_for_label }}" class="form-label">Nom de la
+                        plateforme</label>
+                    {{ game_form.nomPlatform.errors }}
+                    {{ game_form.nomPlatform }}
+                </div>
+
+                <!-- Platform description -->
+                <div class="mb-3">
+                    <label for="{{ game_form.descriptionPlatform.id_for_label }}" class="form-label">Description de la
+                        plateforme</label>
+                    {{ game_form.descriptionPlatform }}
+                </div>
+
+                <!-- Platform manufacturer -->
+                <div class="mb-3">
+                    <label for="{{ game_form.manufacturerPlatform.id_for_label }}" class="form-label">Fabricant de la
+                        plateforme</label>
+                    {{ game_form.manufacturerPlatform }}
+                </div>
+
+                <!-- Submit button -->
+                <div class="d-flex justify-content-center">
+                    <button type="submit" name="submit_game" class="btn btn-success">Valider modifications</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <a href="{% url 'games' %}" class="btn btn-dark mt-3">
+        <i class="bi bi-arrow-left me-2"></i>Retour à la liste des jeux
+    </a>
 </div>
+
 {% endblock %}
