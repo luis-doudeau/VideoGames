@@ -14,10 +14,6 @@ from django.views.generic.edit import CreateView
 from fuzzywuzzy import process
 
 
-def home(request):
-    return HttpResponse('bonjour à tous')
-
-
 class GameListView(ListView):
     model = Game
     template_name = 'list_games.html'
@@ -78,9 +74,9 @@ class GameCreateView(CreateView):
         if 'cancel' in self.request.POST:
             # Nous préparons le même formulaire mais sans le besoin de confirmation
             context = self.get_context_data(form=form)
-            # Assurez-vous qu'il n'y a pas de demande de confirmation
+            # S'assurez qu'il n'y a pas de demande de confirmation
             context.pop('confirmation_needed', None)
-            # Assurez-vous qu'il n'y a pas de message d'erreur
+            # S'assurez qu'il n'y a pas de message d'erreur
             context.pop('error_message', None)
             return self.render_to_response(context)
 

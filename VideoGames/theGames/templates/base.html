@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="fr" >
+<html lang="fr">
+
 <head>
-    <meta charset="utf-8" >
+    <meta charset="utf-8">
     <title>
         {% block title %}{% endblock %}
     </title>
@@ -13,61 +14,50 @@
     {% bootstrap_css %}
     {% bootstrap_javascript %}
 </head>
+
 <body>
 
-<header>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#">
-            <i class="fas fa-gamepad mr-2"></i>  <!-- Icône de jeu vidéo -->
-            Gestion des jeux
-        </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Accueil</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'games' %}">Jeux</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'studios' %}">Studios</a>
-                    </li>
-                    <!-- Supprimez le dropdown si vous n'en avez pas besoin -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Plus
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="#">Action</a></li>
-                            <li><a class="dropdown-item" href="#">Another action</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Something else here</a></li>
-                        </ul>
-                    </li>
-                </ul>
-                <form class="d-flex">
-                    <input class="form-control me-2" type="search" placeholder="Rechercher" aria-label="Search">
-                    <button class="btn btn-outline-light" type="submit">Rechercher</button>
-                </form>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-gamepad mr-2"></i> <!-- Icône de jeu vidéo -->
+                    Gestion des jeux
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'games' %}">Jeux</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'studios' %}">Studios</a>
+                        </li>
+                    </ul>
+                    <form class="d-flex">
+                        <input class="form-control me-2" type="search" placeholder="Rechercher" aria-label="Search">
+                        <button class="btn btn-outline-light" type="submit">Rechercher</button>
+                    </form>
+                </div>
             </div>
-        </div>
-    </nav>
-</header>
+        </nav>
+    </header>
 
-<section>
-    {% block content %}
-    {% endblock %}
-</section>
+    <section>
+        {% block content %}
+        {% endblock %}
+    </section>
 
-<footer class="text-center mt-4">
-    <em>Copyright IUT O, 2049</em>
-</footer>
+    <footer class="text-center mt-4">
+        <em>Copyright IUT O, 2049</em>
+    </footer>
 
-{% bootstrap_javascript %}
+    {% bootstrap_javascript %}
 
 </body>
+
 </html>
