@@ -85,17 +85,18 @@ class GameCreateView(CreateView):
             return self.render_to_response(context)
 
         game_name = form.cleaned_data['name']
-        if Game.objects.filter(name=game_name).exists():
+        if Game.objects.filter(name__iexact=game_name.lower()).exists():
             form.add_error('name', 'Un jeu avec ce nom existe déjà.')
             return self.form_invalid(form)
 
         all_games = Game.objects.all()
-        game_names = [game.name.lower() for game in all_games]
+        game_names = [
+            game.name for game in all_games]
         # Récupère les 3 meilleurs résultats
         matches = process.extract(game_name, game_names, limit=3)
 
         for match, percent_similar in matches:
-            if percent_similar > 85:
+            if percent_similar > 80:
                 # Mettre l'état de confirmation et le message d'erreur dans le contexte plutôt que dans la session
                 context = self.get_context_data(form=form)
                 context['confirmation_needed'] = True
@@ -177,31 +178,36 @@ class GameEditView(UpdateView):
             return self.render_to_response(context)
 
         game_name = form.cleaned_data['name']
-        if Game.objects.filter(name=game_name).exists():
+        if Game.objects.filter(name__iexact=game_name.lower()).exists() and Game.objects.get(pk=self.object.pk).name.lower() != game_name.lower():
             form.add_error('name', 'Un jeu avec ce nom existe déjà.')
             return self.form_invalid(form)
 
-        all_games = Game.objects.all()
-        print(Game.objects.get(pk=self.object.pk).name)
-        game_names = [
-            game.name for game in all_games if game.name.lower() != Game.objects.get(pk=self.object.pk).name.lower()]
-        # Récupère les 3 meilleurs résultats
-        matches = process.extract(game_name, game_names, limit=3)
+        nomGameNonChange = Game.objects.get(
+            pk=self.object.pk).name == game_name
 
-        for match, percent_similar in matches:
-            print(percent_similar)
-            if percent_similar > 85:
-                # Mettre l'état de confirmation et le message d'erreur dans le contexte plutôt que dans la session
-                context = self.get_context_data(form=form)
-                context['confirmation_needed'] = True
-                form.add_error('name', '')
-                context['error_message'] = f"Un jeu avec un nom similaire '{match}' existe déjà avec {percent_similar}% de similarité. Veuillez confirmer que ce n'est pas une erreur."
-                return self.render_to_response(context)
+        if not nomGameNonChange:
+
+            all_games = Game.objects.all()
+            game_names = [
+                game.name for game in all_games if game.name != Game.objects.get(pk=self.object.pk).name]
+            # Récupère les 3 meilleurs résultats
+            matches = process.extract(game_name, game_names, limit=3)
+
+            for match, percent_similar in matches:
+                print(percent_similar)
+                if percent_similar > 80:
+                    # Mettre l'état de confirmation et le message d'erreur dans le contexte plutôt que dans la session
+                    context = self.get_context_data(form=form)
+                    context['confirmation_needed'] = True
+                    form.add_error('name', '')
+                    context['error_message'] = f"Un jeu avec un nom similaire '{match}' existe déjà avec {percent_similar}% de similarité. Veuillez confirmer que ce n'est pas une erreur."
+                    return self.render_to_response(context)
 
         existing_platforms_selected = form.cleaned_data.get(
             'platforms') and any(form.cleaned_data.get('platforms'))
 
-        new_platform_name = form.cleaned_data.get('nomPlatform', '').strip()
+        new_platform_name = form.cleaned_data.get(
+            'nomPlatform', '').strip()
         new_platform = None
 
         # Si aucune plateforme existante n'est sélectionnée, et que le nouveau nom de la plateforme est vide,
@@ -257,10 +263,6 @@ class StudioCreateView(CreateView):
     success_url = reverse_lazy('studios')
 
     def form_valid(self, form):
-        if Studio.objects.filter(name=form.cleaned_data['name']).exists():
-            form.add_error('name', 'Un studio avec ce nom existe déjà.')
-            return self.form_invalid(form)
-
         if 'confirm' in self.request.POST:
             # supprime 'confirmation_needed' s'il existe
             self.request.session.pop('confirmation_needed', None)
@@ -289,7 +291,7 @@ class StudioCreateView(CreateView):
         matches = process.extract(studio_name, studio_names, limit=3)
 
         for match, percent_similar in matches:
-            if percent_similar > 85:
+            if percent_similar > 80:
                 # Mettre l'état de confirmation et le message d'erreur dans le contexte plutôt que dans la session
                 context = self.get_context_data(form=form)
                 context['confirmation_needed'] = True
@@ -330,10 +332,6 @@ class StudioEditView(UpdateView):
     success_url = reverse_lazy('studios')
 
     def form_valid(self, form):
-        if Studio.objects.filter(name=form.cleaned_data['name']).exists():
-            form.add_error('name', 'Un studio avec ce nom existe déjà.')
-            return self.form_invalid(form)
-
         if 'confirm' in self.request.POST:
             # supprime 'confirmation_needed' s'il existe
             self.request.session.pop('confirmation_needed', None)
@@ -352,24 +350,28 @@ class StudioEditView(UpdateView):
             return self.render_to_response(context)
 
         studio_name = form.cleaned_data['name']
-        if Studio.objects.filter(name=studio_name).exists():
+        if Studio.objects.filter(name__iexact=studio_name.lower()).exists() and Studio.objects.get(pk=self.object.pk).name.lower() != studio_name.lower():
             form.add_error('name', 'Un studio avec ce nom existe déjà.')
             return self.form_invalid(form)
 
-        all_studios = Studio.objects.all()
-        studio_names = [studio.name for studio in all_studios if studio.name.lower() !=
-                        Studio.objects.get(pk=self.object.pk).name.lower()]
-        # Récupère les 3 meilleurs résultats
-        matches = process.extract(studio_name, studio_names, limit=3)
+        nomStudioNonChange = Studio.objects.get(
+            pk=self.object.pk).name == studio_name
 
-        for match, percent_similar in matches:
-            if percent_similar > 85:
-                # Mettre l'état de confirmation et le message d'erreur dans le contexte plutôt que dans la session
-                context = self.get_context_data(form=form)
-                context['confirmation_needed'] = True
-                form.add_error('name', '')
-                context['error_message'] = f"Un studio avec un nom similaire '{match}' existe déjà avec {percent_similar}% de similarité. Veuillez confirmer que ce n'est pas une erreur."
-                return self.render_to_response(context)
+        if not nomStudioNonChange:
+            all_studios = Studio.objects.all()
+            studio_names = [
+                studio.name for studio in all_studios if studio.name != Studio.objects.get(pk=self.object.pk).name]
+            # Récupère les 3 meilleurs résultats
+            matches = process.extract(studio_name, studio_names, limit=3)
+
+            for match, percent_similar in matches:
+                if percent_similar > 80:
+                    # Mettre l'état de confirmation et le message d'erreur dans le contexte plutôt que dans la session
+                    context = self.get_context_data(form=form)
+                    context['confirmation_needed'] = True
+                    form.add_error('name', '')
+                    context['error_message'] = f"Un studio avec un nom similaire '{match}' existe déjà avec {percent_similar}% de similarité. Veuillez confirmer que ce n'est pas une erreur."
+                    return self.render_to_response(context)
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
